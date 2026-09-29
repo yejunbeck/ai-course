@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 성공</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        h1 { color: #28a745; }
+        pre { background: #f4f4f4; padding: 15px; overflow-x: auto; border-radius: 5px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    {% if success %}
+        <h1>✅ 결제 성공</h1>
+        <p>결제가 정상적으로 완료되었습니다.</p>
+        <table>
+            <thead>
+                <tr><th>항목</th><th>값</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>status</td><td>{{ payment.status }}</td></tr>
+                <tr><td>orderName</td><td>{{ payment.orderName }}</td></tr>
+                <tr><td>totalAmount</td><td>{{ payment.totalAmount }}</td></tr>
+                <tr><td>method</td><td>{{ payment.method }}</td></tr>
+                <tr><td>approvedAt</td><td>{{ payment.approvedAt }}</td></tr>
+            </tbody>
+        </table>
+        <h3>원본 JSON</h3>
+        <pre>{{ payment_json }}</pre>
+    {% else %}
+        <h1 style="color: #dc3545;">❌ 승인 실패</h1>
+        <p>결제 승인 과정에서 오류가 발생했습니다.</p>
+        <table>
+            <tbody>
+                <tr><td>Code</td><td>{{ error_code }}</td></tr>
+                <tr><td>Message</td><td>{{ error_message }}</td></tr>
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 성공</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        h1 { color: #28a745; }
+        pre { background: #f4f4f4; padding: 15px; overflow-x: auto; border-radius: 5px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body id="body">
+    <h1 id="title">결제 결과</h1>
+    <p id="message"></p>
+    
+    <div id="content-area">
+        <table id="result-table">
+            <thead>
+                <tr><th>항목</th><th>값</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <h3>원본 JSON</h3>
+        <pre id="json-display"></pre>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const body = document.getElementById('body');
+        const title = document.getElementById('title');
+        const message = document.getElementById('message');
+        const tableBody = document.querySelector('#result-table tbody');
+        const jsonDisplay = document.getElementById('json-display');
+        const contentArea = document.getElementById('content-area');
+
+        // 서버에서 넘겨준 데이터가 있을 경우 (성공 시)
+        // 여기서는 단순화를 위해 success.html은 서버가 렌더링한 데이터를 받는다고 가정하거나, 
+        // 혹은 클라이언트 사이드에서 처리한다. 
+        // 하지만 SPEC에는 "서버에서 승인 API를 호출한다"고 되어 있으므로 
+        // Flask가 직접 HTML을 렌더링할 것이다. 
+        // 따라서 이 파일은 Flask가 Jinja2 template으로 값을 채워서 보낼 것이다.
+    </script>
+</body>
+</html>

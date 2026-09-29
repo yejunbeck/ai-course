@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>토스페이먼츠 테스트 결제</title>
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        #payment-method, #agreement { border: 1px solid #eee; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
+        button { width: 100%; padding: 15px; background-color: #3182f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        h1 { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>테스트 상품 결제</h1>
+    
+    <div id="payment-method"></div>
+    <div id="agreement"></div>
+    
+    <button id="payment-button" disabled>결제하기</button>
+
+    <script>
+        const clientKey = 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
+        const customerKey = TossPayments.ANONYMOUS;
+
+        const tossPayments = TossPayments(clientKey);
+        const widgets = tossPayments.widgets({ customerKey });
+
+        widgets.setAmount({
+            currency: 'KRW',
+            value: 1000,
+        });
+
+        widgets.renderPaymentMethods({
+            selector: '#payment-method',
+            variantKey: 'DEFAULT',
+        });
+
+        const agreementWidget = widgets.renderAgreement({
+            selector: '#agreement',
+            variantKey: 'AGREEMENT',
+        });
+
+        agreementWidget.on('agreementStatusChange', async (agreementStatus) => {
+            const button = document.getElementById('payment-button');
+            button.disabled = !agreementStatus.agreedRequiredTerms;
+        });
+
+        document.getElementById('payment-button').addEventListener('click', () => {
+            const orderId = Math.random().toString(36).substring(2, 11);
+            const orderName = '테스트 상품';
+            const successUrl = window.location.origin + '/success';
+            const failUrl = window.location.origin + '/fail';
+
+            widgets.requestPayment({
+                orderId,
+                orderName,
+                successUrl,
+                failUrl,
+            });
+        });
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>토스페이먼츠 테스트 결제</title>
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        #payment-method, #agreement { border: 1px solid #eee; padding: 10px; margin-bottom: 20px; border-radius: 8px; }
+        button { width: 100%; padding: 15px; background-color: #3182f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        h1 { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>테스트 상품 결제</h1>
+    
+    <div id="payment-method"></div>
+    <div id="agreement"></div>
+    
+    <button id="payment-button" disabled>결제하기</button>
+
+    <script>
+        const clientKey = 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
+        const customerKey = TossPayments.ANONYMOUS;
+
+        const tossPayments = TossPayments(clientKey);
+        const widgets = tossPayments.widgets({ customerKey });
+
+        widgets.setAmount({
+            currency: 'KRW',
+            value: 1000,
+        });
+
+        widgets.renderPaymentMethods({
+            selector: '#payment-method',
+            variantKey: 'DEFAULT',
+        });
+
+        const agreementWidget = widgets.renderAgreement({
+            selector: '#agreement',
+            variantKey: 'AGREEMENT',
+        });
+
+        agreementWidget.on('agreementStatusChange', async (agreementStatus) => {
+            const button = document.getElementById('payment-button');
+            button.disabled = !agreementStatus.agreedRequiredTerms;
+        });
+
+        document.getElementById('payment-button').addEventListener('click', () => {
+            const orderId = Math.random().toString(36).substring(2, 11);
+            const orderName = '테스트 상품';
+            // SPEC에 따라 successUrl은 /success, failUrl은 /fail
+            const successUrl = window.location.origin + '/success';
+            const failUrl = window.location.origin + '/fail';
+
+            widgets.requestPayment({
+                orderId,
+                orderName,
+                successUrl,
+                failUrl,
+            });
+        });
+    </script>
+</body>
+</html>

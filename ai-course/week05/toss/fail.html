@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 실패</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        h1 { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>❌ 결제 실패</h1>
+    <p>결제 과정에서 오류가 발생했습니다.</p>
+    
+    <table id="error-table">
+        <thead>
+            <tr>
+                <th>항목</th>
+                <th>값</th>
+            </tr>
+        </thead>
+        <tbody id="error-body"></tbody>
+    </table>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorBody = document.getElementById('error-body');
+
+        // 실패 시 전달되는 파라미터들
+        const errorParams = [
+            'code',
+            'message'
+        ];
+
+        errorParams.forEach(param => {
+            const value = urlParams.get(param);
+            if (value) {
+                const row = errorBody.insertRow();
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                cell1.textContent = param;
+                cell2.textContent = value;
+            }
+        });
+
+        if (errorBody.rows.length === 0) {
+            errorBody.innerHTML = '<tr><td colspan="2">전달된 에러 정보가 없습니다.</td></tr>';
+        }
+    </script>
+</body>
+</html>
