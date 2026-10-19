@@ -26,9 +26,24 @@ SPEC.md를 작성하는 데 필요한 것을 나에게 질문해줘.
 -main.py: 화면. 뼈대를 넓힌 것. 계산은 전부 logic.py의 함수를 불러서 한다
 -test_logic.py: logic.py의 함수를 검사한다. 4주차 test_calc.py와 같은 형태로, 실행하면 통과와 실패 수를 출력한다
 
+
+
+###`ft.app(...)`, `ft.colors`, `ft.alignment.center`, `ft.ElevatedButton`, `ft.UserControl`, `TextField(error_text=...)` 등 구버전 속성/클래스 사용 엄격 금지인데 마지막 줄에도 아까와 같이 ft.app이 들어가잖아. flet 1.0버전에 맞게 코드를 수정해###
+
+
+###강의자료에 자주나는 문제로 아래 내용들이 언급되어 있어. "AttributeError: module 'flet' has no attribute 'app': 모델이 옛 Flet 문법을 썼습니다. 뼈대의 ft.run(main)으로 바꾸게 합니다. ft.colors, ft.ElevatedButton도 같은 종류입니다.
+창이 뜨자마자 꺼진다: 터미널의 오류를 봅니다. 대개 뼈대에 없는 인자를 쓴 것입니다. 오류 전체를 붙여서 "뼈대에 있는 문법으로 바꿔줘"로 요청합니다.
+목록에서 삭제를 누르면 다른 줄이 지워진다: 삭제 버튼의 data에 넣은 번호가 지운 뒤에 다시 매겨지지 않은 것입니다. 뼈대의 on_delete를 보여 주고 같은 방식으로 고치게 합니다.
+test_logic.py는 통과하는데 화면에서 결과가 틀리다: main.py가 logic.py의 함수를 부르지 않고 자체 계산을 하고 있는지 봅니다. 4절의 세 번째 확인 항목입니다.
+모델이 첫 단계에서 main.py까지 만든다: 범위 밖입니다. 체크포인트로 되돌리고 프롬프트에 "main.py는 이번에 만들지 않는다"를 넣어 다시 보냅니다.
+질문받기에서 모델이 질문 대신 코드를 쓴다: Act 모드로 보낸 경우입니다. Plan으로 바꾸고 새 작업으로 다시 보냅니다.
+Flet 오류로 오래 막힌다: 화면을 포기하고 logic.py와 test_logic.py만 완성한 뒤, main.py는 input()으로 값을 받는 콘솔 프로그램으로 바꿔도 됩니다. 계산과 테스트가 이 과제의 중심입니다."###
+
+
+
 ### 사용자가 제공해주신 강의 자료의 핵심 내용을 바탕으로 `main.py`를 완벽하게 수정했습니다.
 
-### 수정 사항
+--- 수정 사항
 - **`ft.app(...)` $\rightarrow$ `ft.run(main)`**: `AttributeError: module 'flet' has no attribute 'app'` 오류를 해결하기 위해 뼈대 문법에 맞는 `ft.run(main)`을 사용했습니다.
 - **기타 제약 조건 유지**: 
     - `ft.ElevatedButton` 대신 `ft.Button` 사용.
@@ -36,3 +51,11 @@ SPEC.md를 작성하는 데 필요한 것을 나에게 질문해줘.
     - `TextField(error_text=...)` 대신 별도의 `ft.Text` 위젯 사용.
 
 이제 터미널에서 `python main.py`를 실행하면 정상적으로 가계부 창이 뜰 것입니다. 모든 요구사항과 제약 사항이 충족되었습니다. ###
+
+###The application encountered an error: Container.__init__() got an unexpected keyword argument 'scroll'이 발생해.
+내가 봤을 땐 함수나 컨테이너를 전반적으로 수정해야 될 거 같아###
+
+나의 피드백
+
+1. ft.app 대신 ft.run 사용한다
+2. 함수나 컨테이너를 전반적으로 수정
