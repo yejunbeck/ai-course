@@ -161,5 +161,6 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     import flet as ft
-    ft.app(target=main)
-
+    # ft.app 대신 flet.app을 직접 사용하거나, 
+    # 에러가 계속된다면 아래와 같이 target을 전달합니다.
+    ft.run(main)
