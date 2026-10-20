@@ -1,0 +1,82 @@
+전화번호를 어떤 형식으로 정리하고 싶은지에 따라 여러 가지 방법이 있습니다. 가장 흔히 쓰이는 세 가지 케이스(하이픈 제거, 하이픈 추가, 숫자만 추출)에 대한 파이썬 함수를 만들어 드릴게요.
+
+### 1. 통합 전화번호 정리 함수
+이 함수는 입력된 문자열에서 숫자가 아닌 것을 모두 제거한 뒤, 원하는 포맷으로 변환해줍니다.
+
+```python
+import re
+
+def format_phone_number(phone_str, mode='hyphen'):
+    """
+    전화번호 정리 함수
+    :param phone_str: 입력된 전화번호 (문자열)
+    :param mode: 'hyphen' (010-1234-5678), 'clean' (01012345678), 'only_digits' (01012345678)
+    :return: 정리된 전화번호 문자열
+    """
+    # 1. 숫자만 추출
+    digits = re.sub(r'\D', '', phone_str)
+    
+    if mode == 'only_digits' or mode == 'clean':
+        return digits
+    
+    elif mode == 'hyphen':
+        # 길이에 따른 포맷팅 (한국 번호 기준)
+        length = len(digits)
+        
+        if length == 8: # 예: 1234-5678
+            return f"{digits[:4]}-{digits[4:]}"
+        elif length == 10: # 예: 02-123-4567 또는 010-123-4567
+            if digits.startswith('02'): # 서울 지역번호
+                return f"{digits[:2]}-{digits[2:5]}-{digits[5:]}"
+            else:
+                return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+        elif length == 11: # 예: 010-1234-5678
+            return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+        else:
+            # 패턴이 맞지 않으면 숫자만 반환하거나 원래 형태 유지
+            return digits
+            
+    return digits
+
+# --- 테스트 코드 ---
+test_numbers = [
+    "010-1234-5678",
+    "01012345678",
+    "02.123.4567",
+    "010 1234 5678",
+    "(010) 1234-5678",
+    "021234567"
+]
+
+print(f"{'원본':<20} | {'하이픈 추가':<15} | {'숫자만'}")
+print("-" * 50)
+for num in test_numbers:
+    hyphen = format_phone_number(num, mode='hyphen')
+    only_digits = format_phone_number(num, mode='only_digits')
+    print(f"{num:<20} | {hyphen:<15} | {only_digits}")
+```
+
+### 2. 주요 기능 설명
+
+1.  **`re.sub(r'\D', '', phone_str)`**: 정규표현식을 사용하여 숫자가 아닌 모든 문자(`\D`)를 빈 문자열로 바꿉니다. 즉, 하이픈, 공백, 괄호 등을 한 번에 제거합니다.
+2.  **`mode` 파라미터**:
+    *   `'hyphen'`: `010-1234-5678` 형태로 만듭니다. 한국의 지역번호(02)와 휴대폰 번호 길이를 고려하여 조건문을 넣었습니다.
+    *   `'only_digits'` 또는 `'clean'`: 하이픈 없이 숫자만 남깁니다 (`01012345678`). 데이터베이스 저장용으로 좋습니다.
+3.  **예외 처리**: 번호 길이가 8자리, 10자리, 11자리인 경우를 나누어 처리하여 정확도를 높였습니다.
+
+### 3. 활용 팁 (Pandas 사용 시)
+만약 엑셀이나 CSV 파일의 수만 개 데이터를 한 번에 정리해야 한다면, `pandas` 라이브러리와 함께 사용하는 것이 훨씬 빠릅니다.
+
+```python
+import pandas as pd
+
+# 샘플 데이터프레임 생성
+df = pd.DataFrame({'raw_phone': ["010-1234-5678", "02.123.4567", "01012345678"]})
+
+# apply 함수를 사용하여 전체 컬럼에 적용
+df['clean_phone'] = df['raw_phone'].apply(lambda x: format_phone_number(x, mode='hyphen'))
+
+print(df)
+```
+
+**원하시는 특정 형식이 따로 있다면(예: 국제전화 형식 `+82...`) 말씀해 주세요! 바로 수정해 드릴게요.**

@@ -1,0 +1,89 @@
+전화번호를 어떤 형식으로 정리하고 싶은지에 따라 여러 가지 방법이 있습니다. 가장 대표적인 세 가지 상황(하이픈 제거, 하이픈 추가, 특정 형식으로 통일)에 맞춰 Python 코드를 작성해 드립니다.
+
+### 1. 기본 코드 (Python)
+
+이 코드는 숫자만 추출한 뒤, 길이에 따라 `010-0000-0000` 또는 `02-000-0000` 같은 형식으로 만들어줍니다.
+
+```python
+import re
+
+def format_phone_number(phone_str):
+    # 1. 숫자 이외의 모든 문자 제거 (하이픈, 공백, 괄호 등 제거)
+    digits = re.sub(r'\D', '', str(phone_str))
+    
+    length = len(digits)
+    
+    # 2. 길이에 따른 포맷팅
+    if length == 11:  # 010-1234-5678 형식
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    
+    elif length == 10:
+        # 서울 지역번호(02)인 경우와 일반적인 경우 구분
+        if digits.startswith('02'):
+            return f"{digits[:2]}-{digits[2:5]}-{digits[5:]}"
+        else:  # 011-123-4567 형식
+            return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+            
+    elif length == 9:  # 02-123-4567 형식
+        if digits.startswith('02'):
+            return f"{digits[:2]}-{digits[2:5]}-{digits[5:]}"
+        else:
+            return f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"
+            
+    else:
+        # 형식이 맞지 않으면 숫자만 반환하거나 에러 메시지 반환
+        return digits 
+
+# --- 테스트 ---
+test_numbers = [
+    "01012345678",          # 숫자만 있는 경우
+    "010-1234-5678",       # 이미 하이픈이 있는 경우
+    "021234567",           # 서울 지역번호 (9자리)
+    "031-123-4567",        # 경기 지역번호 (10자리)
+    "(010) 1234 5678",     # 괄호와 공백이 있는 경우
+    "010.1234.5678"        # 점(.)이 있는 경우
+]
+
+print(f"{'원본':<20} | {'정리된 번호'}")
+print("-" * 40)
+for num in test_numbers:
+    print(f"{num:<20} | {format_phone_number(num)}")
+```
+
+---
+
+### 2. 주요 기능 설명
+
+1.  **`re.sub(r'\D', '', str(phone_str))`**: 
+    *   `re` 모듈(정규표현식)을 사용합니다. 
+    *   `\D`는 "숫자가 아닌 모든 것"을 의미합니다. 이를 빈 문자열(`''`)로 바꿔서 입력값이 어떤 형태든 **순수 숫자만 남깁니다.**
+2.  **조건문 (`if-elif`)**:
+    *   전화번호의 총 길이를 기준으로 자르는 위치를 다르게 설정했습니다.
+    *   특히 **서울 지역번호(`02`)**는 다른 지역(3자리)과 달리 2자리이므로, 이를 구분하는 로직을 넣었습니다.
+3.  **F-string**:
+    *   `f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"`와 같이 사용하여 가독성 좋게 문자열을 조립합니다.
+
+---
+
+### 3. 만약 데이터 분석(Pandas)을 하고 있다면?
+
+엑셀이나 CSV 파일을 다루고 있다면, 위 함수를 Pandas의 `apply` 함수와 함께 사용하는 것이 훨씬 빠릅니다.
+
+```python
+import pandas as pd
+
+# 샘플 데이터프레임 생성
+df = pd.DataFrame({
+    'name': ['김철수', '이영희', '박민수'],
+    'phone': ['01012345678', '02-123-4567', '(010)98765432']
+})
+
+# 위에서 만든 함수 적용
+df['phone_cleaned'] = df['phone'].apply(format_phone_number)
+
+print(df)
+```
+
+### 활용 팁
+*   **데이터 정제 목적:** 위 함수는 데이터베이스에 저장하기 전 데이터를 표준화할 때 매우 유용합니다.
+*   **확장성:** 만약 해외 전화번호까지 처리해야 한다면 `phonenumbers`라는 전문 라이브러리를 사용하는 것을 추천합니다. (`pip install phonenumbers`)

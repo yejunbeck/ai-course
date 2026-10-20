@@ -1,0 +1,94 @@
+전화번호를 어떤 형식으로 정리하고 싶은지에 따라 여러 가지 방법이 있습니다. 가장 대표적인 세 가지 상황(하이픈 추가, 숫자만 추출, 특정 형식으로 통일)에 맞춰 파이썬(Python) 함수 예시를 만들어 보았습니다.
+
+### 1. 숫자만 남기고 하이픈(`-`)을 넣는 함수
+사용자가 `01012345678`, `010-1234-5678`, `010 1234 5678` 등 제각각으로 입력해도 **`010-1234-5678`** 형태로 통일해줍니다.
+
+```python
+import re
+
+def format_phone_number(phone_str):
+    # 1. 숫자 이외의 모든 문자 제거
+    numbers = re.sub(r'[^0-9]', '', phone_str)
+    
+    # 2. 길이에 따라 하이픈 삽입
+    length = len(numbers)
+    
+    if length == 11:  # 010-1234-5678 형태
+        return f"{numbers[:3]}-{numbers[3:7]}-{numbers[7:]}"
+    elif length == 10:  # 02-123-4567 또는 010-123-4567 형태
+        # 앞자리가 3자리인 경우 (예: 010)
+        if numbers.startswith('010') or numbers.startswith('011') or numbers.startswith('016'):
+            return f"{numbers[:3]}-{numbers[3:6]}-{numbers[6:]}"
+        # 앞자리가 2자리인 경우 (예: 서울 02)
+        else:
+            return f"{numbers[:2]}-{numbers[2:5]}-{numbers[5:]}"
+    elif length == 9:  # 02-1234-5678 형태
+        return f"{numbers[:2]}-{numbers[2:6]}-{numbers[6:]}"
+    else:
+        return "잘못된 전화번호 형식입니다."
+
+# 테스트
+test_numbers = ["01012345678", "010-1234-5678", "010 1234 5678", "021234567", "0101234567"]
+for num in test_numbers:
+    print(f"{num}  =>  {format_phone_number(num)}")
+```
+
+---
+
+### 2. 데이터 분석용: 숫자만 추출하는 함수
+DB에 저장하거나 계산을 위해 하이픈을 모두 제거하고 **숫자만** 뽑아내고 싶을 때 사용합니다.
+
+```python
+import re
+
+def clean_phone_number(phone_str):
+    # 숫자 이외의 모든 문자를 빈 문자열로 대체
+    return re.sub(r'[^0-9]', '', phone_str)
+
+# 테스트
+print(clean_phone_number("010-1234-5678")) # 출력: 01012345678
+print(clean_phone_number("(02) 123-4567"))  # 출력: 021234567
+```
+
+---
+
+### 3. Pandas 데이터프레임 전체 적용하기 (엑셀/CSV 정리용)
+만약 엑셀 파일처럼 많은 양의 데이터를 한꺼번에 정리해야 한다면 `pandas` 라이브러리를 사용하는 것이 가장 빠릅니다.
+
+```python
+import pandas as pd
+import re
+
+def format_phone_number(phone_str):
+    if pd.isna(phone_str): return "" # 결측치 처리
+    numbers = re.sub(r'[^0-9]', '', str(phone_str))
+    length = len(numbers)
+    
+    if length == 11:
+        return f"{numbers[:3]}-{numbers[3:7]}-{numbers[7:]}"
+    elif length == 10:
+        if numbers.startswith(('010', '011', '016', '017', '018', '019')):
+            return f"{numbers[:3]}-{numbers[3:6]}-{numbers[6:]}"
+        else:
+            return f"{numbers[:2]}-{numbers[2:5]}-{numbers[5:]}"
+    elif length == 9:
+        return f"{numbers[:2]}-{numbers[2:6]}-{numbers[6:]}"
+    return numbers # 형식이 안 맞으면 숫자만 반환
+
+# 샘플 데이터 생성
+data = {'name': ['김철수', '이영희', '박민수', '최지우'],
+        'phone': ['010-1234-5678', '01011112222', '(02) 555 4444', '0101234567']}
+df = pd.DataFrame(data)
+
+# 함수 적용
+df['phone_cleaned'] = df['phone'].apply(format_phone_number)
+
+print(df)
+```
+
+### 요약: 어떤 것을 쓸까요?
+1.  **"사용자에게 예쁘게 보여주고 싶다"** $\rightarrow$ **1번** 함수
+2.  **"데이터베이스에 깔끔하게 숫자만 넣고 싶다"** $\rightarrow$ **2번** 함수
+3.  **"엑셀 파일을 불러와서 수천 명의 번호를 한 번에 바꾸고 싶다"** $\rightarrow$ **3번** 함수
+
+원하시는 구체적인 규칙(예: 국가번호 +82 포함 등)이 있다면 말씀해 주세요! 바로 수정해 드릴게요.

@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo App</title>
+    <style>
+        .completed {
+            text-decoration: line-through;
+        }
+    </style>
 </head>
 <body>
     <h1>Todo List</h1>
@@ -16,7 +21,13 @@
     <ul>
         {% for todo in todos %}
             <li>
-                {{ todo.title }} - {{ "Completed" if todo.is_completed else "Pending" }} ({{ todo.created_at }})
+                <span class="{{ 'completed' if todo.is_completed else '' }}">
+                    {{ todo.title }}
+                </span>
+                <form action="/toggle/{{ todo.id }}" method="POST" style="display: inline;">
+                    <button type="submit">Toggle</button>
+                </form>
+                <span>({{ todo.created_at }})</span>
             </li>
         {% endfor %}
     </ul>
