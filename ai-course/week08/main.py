@@ -8,6 +8,7 @@ class ParkingCalculatorApp:
         self.page.title = "주차 요금 계산기"
         self.page.padding = 20
         self.records = []
+        
         self.selected_entry_date = None
         self.selected_entry_time = None
         self.selected_exit_date = None
@@ -22,8 +23,8 @@ class ParkingCalculatorApp:
             self.entry_time_picker, self.exit_time_picker
         ])
 
-        self.entry_info_text = ft.Text("입차: 날짜/시간을 선택하세요", size=16)
-        self.exit_info_text = ft.Text("출차: 날짜/시간을 선택하세요", size=16)
+        self.entry_info_text = ft.Text("입차: 날짜/시간을 선택하세요")
+        self.exit_info_text = ft.Text("출차: 날짜/시간을 선택하세요")
         self.records_list_view = ft.ListView(expand=True, spacing=10, padding=10)
         self.total_fee_text = ft.Text("총 합계: 0원", size=24, weight="bold")
         self.pending_delete_index = None
@@ -36,12 +37,12 @@ class ParkingCalculatorApp:
                 ft.TextButton("예", on_click=self._confirm_delete),
                 ft.TextButton("아니오", on_click=self._cancel_delete),
             ],
-            actions_alignment=ft.MainAxisAlignment.END,
         )
         self.page.overlay.append(self.delete_confirm_dialog)
         self.build_ui()
 
     def build_ui(self):
+        # 입력 영역
         input_section = ft.Column(
             controls=[
                 ft.Text("주차 정보 입력", size=20, weight="bold"),
@@ -57,26 +58,36 @@ class ParkingCalculatorApp:
                 ]),
                 self.exit_info_text,
                 ft.Divider(),
-                ft.TextButton("계산하기", on_click=self._handle_calculate, bgcolor=ft.colors.BLUE_400, color=ft.colors.WHITE),
+                # 가장 단순한 형태의 버튼 (색상/배경 제거)
+                ft.TextButton("계산하기", on_click=self._handle_calculate),
             ],
             spacing=10
         )
+
+        # 출력 영역
         display_section = ft.Column(
             controls=[
                 ft.Text("주차 기록 목록", size=20, weight="bold"),
-                ft.Container(content=self.records_list_view, height=300, border=ft.border.all(1, ft.colors.GREY_400), border_radius=5),
+                # 테두리 관련 에러를 피하기 위해 Container의 복잡한 속성을 제거
+                ft.Container(
+                    content=self.records_list_view,
+                    height=300,
+                ),
                 ft.Divider(),
-                ft.Row([self.total_fee_text], alignment=ft.MainAxisAlignment.END),
+                ft.Row([self.total_fee_text], alignment="end"),
             ],
             expand=True,
             spacing=10
         )
+
         self.page.add(ft.Column([input_section, display_section], expand=True))
+
+        # 이벤트 연결
         self.entry_date_picker.on_change = self._on_entry_date_change
         self.exit_date_picker.on_change = self._on_exit_date_change
         self.entry_time_picker.on_change = self._on_entry_time_change
         self.exit_time_picker.on_change = self._on_exit_time_change
-        
+
     def _on_entry_date_change(self, e):
         self.selected_entry_date = self.entry_date_picker.value
         self._update_input_displays()
@@ -117,7 +128,12 @@ class ParkingCalculatorApp:
         exit_dt = datetime.combine(self.selected_exit_date, self.selected_exit_time.time())
         try:
             minutes, fee = calculate_parking_fee(entry_dt, exit_dt)
-            self.records.insert(0, {"entry": entry_dt.strftime("%Y-%m-%d %H:%M"), "exit": exit_dt.strftime("%Y-%m-%d %H:%M"), "duration": f"{minutes}분", "fee": fee})
+            self.records.insert(0, {
+                "entry": entry_dt.strftime("%Y-%m-%d %H:%M"),
+                "exit": exit_dt.strftime("%Y-%m-%d %H:%M"),
+                "duration": f"{minutes}분",
+                "fee": fee
+            })
             self._refresh_list()
         except ValueError as ex:
             self.page.snack_bar = ft.SnackBar(ft.Text(str(ex)))
@@ -133,7 +149,7 @@ class ParkingCalculatorApp:
                 ft.Text(f"{rec['entry']} ~ {rec['exit']}", expand=True),
                 ft.Text(f"{rec['duration']}, "),
                 ft.Text(f"{format_currency(rec['fee'])}", weight="bold"),
-                ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e, idx=index: self._show_delete_dialog(idx))
+                ft.IconButton(icon="delete", on_click=lambda e, idx=index: self._show_delete_dialog(idx))
             ]))
         self.total_fee_text.value = f"총 합계: {format_currency(total_sum)}"
         self.page.update()
@@ -161,6 +177,7 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     import flet as ft
-    # ft.app 대신 flet.app을 직접 사용하거나, 
-    # 에러가 계속된다면 아래와 같이 target을 전달합니다.
-    ft.run(main)
+    try:
+        ft.app(target=main)
+    except AttributeError:
+        ft.run(main)
