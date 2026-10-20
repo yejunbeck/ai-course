@@ -14,10 +14,13 @@ class ParkingCalculatorApp:
         self.selected_exit_date = None
         self.selected_exit_time = None
 
+        # 1. Picker 객체 생성
         self.entry_date_picker = ft.DatePicker()
         self.exit_date_picker = ft.DatePicker()
         self.entry_time_picker = ft.TimePicker()
         self.exit_time_picker = ft.TimePicker()
+        
+        # 2. Overlay에 추가 (반드시 필요)
         self.page.overlay.extend([
             self.entry_date_picker, self.exit_date_picker,
             self.entry_time_picker, self.exit_time_picker
@@ -47,18 +50,17 @@ class ParkingCalculatorApp:
             controls=[
                 ft.Text("주차 정보 입력", size=20, weight="bold"),
                 ft.Row([
-                    ft.TextButton("입차 날짜 선택", on_click=lambda _: self.entry_date_picker.pick_date()),
-                    ft.TextButton("입차 시간 선택", on_click=lambda _: self.entry_time_picker.pick_time()),
+                    ft.TextButton("입차 날짜 선택", on_click=self._open_entry_date),
+                    ft.TextButton("입차 시간 선택", on_click=self._open_entry_time),
                 ]),
                 self.entry_info_text,
                 ft.Divider(),
                 ft.Row([
-                    ft.TextButton("출차 날짜 선택", on_click=lambda _: self.exit_date_picker.pick_date()),
-                    ft.TextButton("출차 시간 선택", on_click=lambda _: self.exit_time_picker.pick_time()),
+                    ft.TextButton("출차 날짜 선택", on_click=self._open_exit_date),
+                    ft.TextButton("출차 시간 선택", on_click=self._open_exit_time),
                 ]),
                 self.exit_info_text,
                 ft.Divider(),
-                # 가장 단순한 형태의 버튼 (색상/배경 제거)
                 ft.TextButton("계산하기", on_click=self._handle_calculate),
             ],
             spacing=10
@@ -68,11 +70,7 @@ class ParkingCalculatorApp:
         display_section = ft.Column(
             controls=[
                 ft.Text("주차 기록 목록", size=20, weight="bold"),
-                # 테두리 관련 에러를 피하기 위해 Container의 복잡한 속성을 제거
-                ft.Container(
-                    content=self.records_list_view,
-                    height=300,
-                ),
+                ft.Container(content=self.records_list_view, height=300),
                 ft.Divider(),
                 ft.Row([self.total_fee_text], alignment="end"),
             ],
@@ -88,6 +86,24 @@ class ParkingCalculatorApp:
         self.entry_time_picker.on_change = self._on_entry_time_change
         self.exit_time_picker.on_change = self._on_exit_time_change
 
+    # --- Picker를 여는 메서드 ---
+    def _open_entry_date(self, e):
+        self.entry_date_picker.open = True
+        self.page.update()
+
+    def _open_exit_date(self, e):
+        self.exit_date_picker.open = True
+        self.page.update()
+
+    def _open_entry_time(self, e):
+        self.entry_time_picker.open = True
+        self.page.update()
+
+    def _open_exit_time(self, e):
+        self.exit_time_picker.open = True
+        self.page.update()
+
+    # --- 데이터 변경 핸들러 ---
     def _on_entry_date_change(self, e):
         self.selected_entry_date = self.entry_date_picker.value
         self._update_input_displays()
@@ -124,8 +140,11 @@ class ParkingCalculatorApp:
             self.page.snack_bar.open = True
             self.page.update()
             return
-        entry_dt = datetime.combine(self.selected_entry_date, self.selected_entry_time.time())
-        exit_dt = datetime.combine(self.selected_exit_date, self.selected_exit_time.time())
+        
+        # [핵심 수정] .time() 호출 제거: self.selected_entry_time은 이미 time 객체입니다.
+        entry_dt = datetime.combine(self.selected_entry_date, self.selected_entry_time)
+        exit_dt = datetime.combine(self.selected_exit_date, self.selected_exit_time)
+        
         try:
             minutes, fee = calculate_parking_fee(entry_dt, exit_dt)
             self.records.insert(0, {
