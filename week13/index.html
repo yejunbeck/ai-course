@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>나눠 내기 계산기</title>
+    <style>
+        :root { --primary: #4a90e2; --bg: #f5f7fa; --card: #fff; --txt: #333; --brd: #ddd; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 500px; }
+        h1 { text-align: center; font-size: 1.5rem; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
+        input[type="number"] { width: 100%; padding: 12px; border: 1px solid var(--brd); border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        .upload-section { text-align: center; padding: 20px; border: 2px dashed var(--brd); border-radius: 10px; cursor: pointer; }
+        #status { margin-top: 10px; font-size: 0.9rem; text-align: center; min-height: 1.2em; }
+        .result-area { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 15px; }
+        .result-amount { font-size: 2rem; font-weight: bold; }
+        .item-list { margin-top: 15px; list-style: none; padding: 0; }
+        .item-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>💸 나눠 내기</h1>
+    <div class="card">
+        <div class="input-group"><label>총 금액 (₩)</label><input type="number" id="totalAmount" placeholder="0" inputmode="numeric"></div>
+        <div class="input-group"><label>인원 수 (명)</label><input type="number" id="peopleCount" value="1" min="1" inputmode="numeric"></div>
+    </div>
+    <div class="card">
+        <label>영수증 스캔</label>
+        <div class="upload-section" onclick="document.getElementById('receiptUpload').click()"><span>📷 사진 올리기</span></div>
+        <input type="file" id="receiptUpload" accept="image/*">
+        <div id="status"></div>
+        <ul id="itemList" class="item-list"></ul>
+    </div>
+    <div class="result-area">
+        <div>1인당 금액</div>
+        <div class="result-amount" id="perPersonAmount">0원</div>
+    </div>
+</div>
+<script>
+    async function ask(prompt, imageUrl) {
+        const content = [{ type: "text", text: prompt }];
+        if (imageUrl) content.push({ type: "image_url", image_url: { url: imageUrl } });
+        const r = await fetch("https://krchoi.com/gemma4/v1/chat/completions", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: "gemma4", messages: [{ role: "user", content: content }] })
+        });
+        const data = await r.json(); return data.choices[0].message.content;
+    }
+    function parseJson(text) {
+        const m = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        try { return JSON.parse(m ? m[1] : text); } catch (e) { return null; }
+    }
+    function shrinkImage(file, maxSize = 1280) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.round(img.width * scale); canvas.height = Math.round(img.height * scale);
+                canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL("image/jpeg", 0.85));
+            };
+            img.onerror = reject; img.src = URL.createObjectURL(file);
+        });
+    }
+    const totalInput = document.getElementById('totalAmount'), peopleInput = document.getElementById('peopleCount'),
+          perPersonDisplay = document.getElementById('perPersonAmount'), receiptUpload = document.getElementById('receiptUpload'),
+          statusDisplay = document.getElementById('status'), itemListDisplay = document.getElementById('itemList');
+    function calc() {
+        const total = parseInt(totalInput.value) || 0, people = parseInt(peopleInput.value) || 1;
+        perPersonDisplay.innerText = Math.floor(total / people).toLocaleString() + '원';
+    }
+    totalInput.oninput = calc; peopleInput.oninput = calc;
+    receiptUpload.onchange = async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        statusDisplay.innerText = "읽는 중..."; statusDisplay.style.color = "blue"; itemListDisplay.innerHTML = "";
+        try {
+            const imgData = await shrinkImage(file);
+            const prompt = "Return JSON array of {'item':'name','price':number} from this receipt. ONLY JSON.";
+            const res = await ask(prompt, imgData);
+            const data = parseJson(res);
+            if (data && Array.isArray(data)) {
+                let sum = 0; itemListDisplay.innerHTML = "";
+                data.forEach(i => {
+                    const p = parseInt(i.price) || 0; sum += p;
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${i.item}</span><span>${p.toLocaleString()}원</span>`;
+                    itemListDisplay.appendChild(li);
+                });
+                totalInput.value = sum; calc();
+                statusDisplay.innerText = "완료"; statusDisplay.style.color = "green";
+            } else throw new Error();
+        } catch (err) { statusDisplay.innerText = "읽지 못했습니다."; statusDisplay.style.color = "red"; }
+    };
+</script>
+</body>
+</html>
